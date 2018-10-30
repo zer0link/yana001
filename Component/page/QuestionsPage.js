@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     // Text,
- View
+    View
 } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 // import {axios} from 'axios';
@@ -20,51 +20,81 @@ export default class Questions extends Component {
         super(props);
 
         const { params } = this.props.navigation.state;
-        console.log(params);
+        alert(params.token);
 
         this.state = {
             email: "hankhee@hotmail.com", //params.email,
             questionId: "",
             question: "",
             selectionA: "",
-            selectionB: ""
-            
+            selectionB: "",
+            token: params.token
         }
         this.submitAnswer = this.submitAnswer.bind(this);
         this.getNextQuestion = this.getNextQuestion.bind(this);
     }
 
-    getNextQuestion(){
-        console.log('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email);
-        axios.get('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email
-        )
-            .then((response) => {
-                this.setState({
-                    questionId: response.data._id,
-                    question: response.data.question,
-                    selectionA: response.data.selectionA,
-                    selectionB: response.data.selectionB
-                });
-                console.log(response);
-            });        
-    }
-
-    submitAnswer(answer) {
-        console.log(answer);
-        axios.post('https://alone-nodejs.herokuapp.com/useranswer', {
-            "userEmail": this.state.email,
-            "questionId": this.state.questionId,
-            "answer": answer
-        })
-            .then(function (response) {
-                console.log(response);
+    getNextQuestion() {
+        axios(
+            {
+                url: 'https://alone-nodejs.herokuapp.com/useranswer',
+                method: 'GET',
+                headers: {
+                    'content-Type': 'application/json',
+                    authorization: 'bearer ' + this.state.token
+                }
             })
-            .catch(function (error) {
-                console.log(error);
+            .then(result => {
+                this.setState({ question: result.data });
+                console.log("Success: ", result.data);
+            })
+            .catch(err => {
+                console.log("Error: ", err.response);
             });
     }
 
-    componentWillMount() {
+    // getNextQuestion(){
+    //     console.log('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email);
+    //     axios.get('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email
+    //     )
+    //         .then((response) => {
+    //             this.setState({
+    //                 questionId: response.data._id,
+    //                 question: response.data.question,
+    //                 selectionA: response.data.selectionA,
+    //                 selectionB: response.data.selectionB
+    //             });
+    //             console.log(response);
+    //         });        
+    // }
+
+    submitAnswer(answer) {
+        console.log(answer);
+
+        axios(
+            {
+                url: 'https://alone-nodejs.herokuapp.com/useranswer',
+                method: 'POST',
+                headers: {
+                    'content-Type': 'application/json',
+                    authorization: 'bearer ' + this.state.token
+                },
+                data:{
+                    "userEmail": this.state.email,
+                    "questionId": this.state.question._id,
+                    "answer": answer
+                }
+            })
+            .then(result => {
+                this.setState({ question: result.data });
+                console.log("Success: ", result.data);
+            })
+            .catch(err => {
+                console.log("Error: ", err.response);
+            });
+    }
+
+    componentDidMount() {
         this.getNextQuestion();
     }
 
@@ -74,33 +104,33 @@ export default class Questions extends Component {
                 <Row style={{ backgroundColor: '#635DB7', alignItems: 'center' }}>
                     <Col style={{ alignItems: 'center' }}>
                         <Text>
-                            {this.state.question}
+                            {this.state.question.question}
                         </Text>
                     </Col>
                 </Row>
                 <Row style={{ backgroundColor: '#00CE9F', alignItems: 'center' }}>
                     <Col style={{ backgroundColor: '#ddd' }}>
                         <TouchableOpacity style={{ flex: 1 }}
-                            onPress={() => this.submitAnswer(this.state.selectionA)}
+                            onPress={() => this.submitAnswer(this.state.question.selectionA)}
                         >
-                            <Text style={{ alignSelf: 'center' }}> {this.state.selectionA}</Text>
+                            <Text style={{ alignSelf: 'center' }}> {this.state.question.selectionA}</Text>
                         </TouchableOpacity>
 
                     </Col>
                     <Col style={{ backgroundColor: '#bbb' }}>
                         <TouchableOpacity style={{ flex: 1 }}
-                            onPress={() => this.submitAnswer(this.state.selectionB)}
+                            onPress={() => this.submitAnswer(this.state.question.selectionB)}
                         >
-                            <Text style={{ alignSelf: 'center' }}> {this.state.selectionB}</Text>
+                            <Text style={{ alignSelf: 'center' }}> {this.state.question.selectionB}</Text>
                         </TouchableOpacity>
                     </Col></Row>
                 <Row style={{ backgroundColor: '#635DB7' }}>
                     <Col>
-                            <Button full light style={{bottom:-100}}
-                                onPress={() => this.getNextQuestion()}
-                            >
-                                <Text>Next Question</Text>  
-                            </Button>
+                        <Button full light style={{ bottom: -100 }}
+                            onPress={() => this.getNextQuestion()}
+                        >
+                            <Text>Next Question</Text>
+                        </Button>
                     </Col>
                 </Row>
             </Grid>

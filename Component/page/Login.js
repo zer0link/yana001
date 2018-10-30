@@ -11,13 +11,14 @@ import { Actions } from 'react-native-router-flux';
 import Colors from '../Colors';
 import Text from '../component/Text';
 import Navbar from '../component/Navbar';
+const axios = require('axios');
 
 export default class Login extends Component {
   constructor(props) {
       super(props);
       this.state = {
-        username: "hankhee@hotmail.com",
-        password: '',
+        username: "batman2@gmail.com",
+        password: 'batman2',
         hasError: false,
         errorText: '',
         questionId: "",
@@ -25,22 +26,7 @@ export default class Login extends Component {
         selectionA: "",
         selectionB: ""
       };
-      this.getNextQuestion = this.getNextQuestion.bind(this);
   }
-  getNextQuestion(){
-    console.log('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email);
-    axios.get('https://alone-nodejs.herokuapp.com/useranswer/' + this.state.email
-    )
-        .then((response) => {
-            this.setState({
-                questionId: response.data._id,
-                question: response.data.question,
-                selectionA: response.data.selectionA,
-                selectionB: response.data.selectionB
-            });
-            console.log(response);
-        });        
-}
 
   render() {
     var left = (
@@ -85,20 +71,18 @@ export default class Login extends Component {
   }
 
   login() {
-    console.log(answer);
-        axios.post('https://alone-nodejs.herokuapp.com/useranswer', {
-            "userEmail": this.state.email,
-            "questionId": this.state.questionId,
-            "answer": answer
-        })
-            .then(function (response) {
-              this.getNextQuestion();
-            })
-            .catch(function (error) {
-              this.setState({hasError: true, errorText: 'Invalid username or password !'});
-            });
-    
+    axios.post('https://alone-nodejs.herokuapp.com/login',
+    {
+        email: "batman2@gmail.com",
+        password: "batman2"
+    })
+    .then(result => {
+        console.log("Success: ", result.data);
+        Actions.question(result.data);
+    })
+    .catch(err => {
+      alert(err);
+        console.log("Error: ", err);
+    });    
   }
-
-
 }
